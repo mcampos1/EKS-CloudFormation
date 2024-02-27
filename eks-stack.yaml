@@ -8,13 +8,13 @@ Parameters:
     Default: my-eks-cluster
   NumberOfWorkerNodes:
     Type: Number
-    Default: 1
+    Default: 1 #increase?
   WorkerNodesInstanceType:
     Type: String
     Default: t2.micro
   KubernetesVersion:
     Type: String
-    Default: 1.22
+    Default: 1.29
     
 Resources:
 

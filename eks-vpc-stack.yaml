@@ -6,27 +6,27 @@ Parameters:
 
   VpcBlock:
     Type: String
-    Default: 192.168.0.0/16
+    Default: 10.0.0.0/20 #update
     Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range.
 
   PublicSubnet01Block:
     Type: String
-    Default: 192.168.0.0/18
+    Default: 10.0.0.0/24
     Description: CidrBlock for public subnet 01 within the VPC
 
   PublicSubnet02Block:
     Type: String
-    Default: 192.168.64.0/18
+    Default: 10.0.1.0/24
     Description: CidrBlock for public subnet 02 within the VPC
 
   PrivateSubnet01Block:
     Type: String
-    Default: 192.168.128.0/18
+    Default: 10.0.8.0/24
     Description: CidrBlock for private subnet 01 within the VPC
 
   PrivateSubnet02Block:
     Type: String
-    Default: 192.168.192.0/18
+    Default: 10.0.9.0/24
     Description: CidrBlock for private subnet 02 within the VPC
 
 Metadata:
@@ -286,11 +286,11 @@ Outputs:
     Export:
       Name: PrivateSubnetIds
 
-  SecurityGroups:
+  ControlPlaneSecurityGroupId:
     Description: Security group for the cluster control plane communication with worker nodes
-    Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
+    Value: !Ref ControlPlaneSecurityGroup
     Export: 
-      Name: ControlPlaneSecurityGroup
+      Name: ControlPlaneSecurityGroupId
 
   VpcId:
     Description: The VPC Id
