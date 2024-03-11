@@ -5,10 +5,10 @@ Description: 'Amazon EKS Cluster'
 Parameters:
   ClusterName:
     Type: String
-    Default: my-eks-cluster
+    Default: mc-eks-cluster
   NumberOfWorkerNodes:
     Type: Number
-    Default: 1 #increase?
+    Default: 2 #increase?
   WorkerNodesInstanceType:
     Type: String
     Default: t2.micro

@@ -51,7 +51,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
       - Key: Name
-        Value: !Sub '${AWS::StackName}-VPC'
+        Value: !Sub '${AWS::StackName}-VPC'how t
 
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
