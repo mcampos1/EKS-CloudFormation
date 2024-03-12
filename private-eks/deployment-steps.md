@@ -4,20 +4,24 @@
     * S3,EC2, ECR, STS (permissions for service accounts), 
 3. Create EKS cluster service role: to allow control plane to manage resources
     * IAM > EKS use case
+    * Attach AmazonEKSClusterPolicy
 4. EKS Network Configuration, select private VPC and private subnets, select private cluster endpoint access (only accessible within VPC)
     * EKS automatically creates a security group for ENI that are created for the worker node subnets
-5. Create Node Group IAM role, IAM > EC2 use cases > EKSWorkerNodePolicy & EC2ContainerRegistryReadnly (pull images from ECR)
-    * Select private subnets for NodeGroup and the private VPC
-    * Configure remote access to nodes (Not for production)
-    * Create Secuirty group to access Worker Nodes and attach key pair
-6. Create Jumpbox/Bastion, Launch Instance, has to be hosted in the same VPC as the cluster
+    * Add port 443 to cluster security group with source being the scruity group that is attached to the jumpbox
+5. Create Node Group IAM role 
+    * Attach EKSWorkerNodePolicy, AmazonEKS_CNI_Policy & EC2ContainerRegistryReadonly (pull images from ECR)
+6. Add Node Group to Cluster
+    * Select the corresponding private VPC/subnets
+    * Configure remote access to nodes
+    * Create a security group to access worker nodes and attach key pair
+7. Create Jumpbox/Bastion, Launch Instance, has to be hosted in the same VPC as the cluster
     * If using public subnet, auto assign public IP
     * Create Security Group to allow access into JumpBox
 
         chmod 400 jumpbox.pem
         ssh -i path-to-key ec2-user@ipaddress
 
-7. Install Kubectl on Jumpbox 
+8. Install Kubectl on Jumpbox 
 
 [Kubectl Installation](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html)
 
@@ -49,7 +53,7 @@ Verify kubectl version
 
     kubectl version --client
 
-8. Configure IAM role in jumpbox so that others may access the cluster
+9. Configure IAM role in jumpbox so that others may access the cluster
     * by default only the IAM principal that created the cluster is the only principal that has access to the cluster. 
 
 [Add IAM principals to your Amazon EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html)
