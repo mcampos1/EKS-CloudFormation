@@ -51,6 +51,8 @@ Mappings:
       AZs: ["a", "b", "c"]
     us-west-2:
       AZs: ["a", "b", "c"]
+    us-gov-west-1:
+      AZs: ["a", "b", "c"]
 
 Conditions:
   CreateProxyEndpoint: !Not [!Equals [!Ref HttpProxyServiceName, ""]]
