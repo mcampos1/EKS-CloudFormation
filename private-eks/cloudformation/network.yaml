@@ -135,6 +135,27 @@ Resources:
               - "-private-"
               - !Select [2, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
 
+  JumpboxSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref PrivateEKSVPC
+      AvailabilityZone:
+        Fn::Sub:
+          - "${AWS::Region}${AZ}"
+          - AZ: !Select [3, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
+      CidrBlock:
+        Fn::FindInMap:
+          - "SubnetConfig"
+          - "Jumpbox"
+          - "CIDR"
+      Tags:
+        - Key: "Name"
+          Value: !Join
+            - ""
+            - - !Sub "${StackPrefix}"
+              - "-private-"
+              - !Select [3, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
+
   PrivateRouteTable1:
     Type: "AWS::EC2::RouteTable"
     Properties:
@@ -159,6 +180,14 @@ Resources:
         - Key: "Name"
           Value: !Sub ${StackPrefix}-private-route-table-3
 
+  JumpboxRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref PrivateEKSVPC
+      Tags:
+        - Key: "Name"
+          Value: !Sub ${StackPrefix}-jumpbox-route-table
+
   PrivateSubnetRouteTableAssociation1:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
     Properties:
@@ -182,6 +211,14 @@ Resources:
         Ref: "PrivateSubnet3"
       RouteTableId:
         Ref: "PrivateRouteTable3"
+
+  JumpboxSubnetRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: "JumpboxSubnet"
+      RouteTableId:
+        Ref: "JumpboxRouteTable"
 
   EndpointClientSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -213,6 +250,7 @@ Resources:
         - !Ref PrivateRouteTable1
         - !Ref PrivateRouteTable2
         - !Ref PrivateRouteTable3
+        - !Ref JumpboxRouteTable
       VpcId: !Ref PrivateEKSVPC
 
   HttpProxyEndpoint:
@@ -228,6 +266,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   ECRAPIEndpoint:
@@ -242,6 +281,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   ECRDockerEndpoint:
@@ -256,6 +296,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   EC2Endpoint:
@@ -270,6 +311,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   CWLogsEndpoint:
@@ -284,6 +326,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   EC2AutoScalingEndpoint:
@@ -312,6 +355,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   SSMEndpoint:
@@ -326,6 +370,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
   SSMMessagesEndpoint:
@@ -340,6 +385,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+        - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
 Outputs:
@@ -372,6 +418,12 @@ Outputs:
     Value: !Ref PrivateSubnet3
     Export:
       Name: !Sub "${StackPrefix}-PrivateSubnet3"
+
+  JumpboxSubnet:
+    Description: "SubnetId of jumpbox subnet"
+    Value: !Ref JumpboxSubnet
+    Export:
+      Name: !Sub "${StackPrefix}-JumpboxSubnet"
 
   DefaultSecurityGroup:
     Description: "DefaultSecurityGroup Id"

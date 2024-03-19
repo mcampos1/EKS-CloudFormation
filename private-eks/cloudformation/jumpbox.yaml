@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Jumpbox for Private EKS Cluster'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the EC2 instance will be launched
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet ID within the VPC where the EC2 instance will be launched
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the EC2 instance
+
+Resources:
+  Jumpbox:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.large
+      KeyName: !Ref KeyName
+      ImageId: ami-0535f9626f79a1689 # Specify your desired Amazon Linux or Ubuntu AMI
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref JumpboxSecurityGroup
+
+  JumpboxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Jumpbox
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0 # Allowing SSH access from anywhere. For production, restrict to specific IP ranges.

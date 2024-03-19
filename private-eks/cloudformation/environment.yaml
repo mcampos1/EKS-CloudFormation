@@ -29,6 +29,13 @@ Resources:
         StackPrefix: !Ref StackPrefix
       TemplateURL: permissions.yaml
 
+  Jumpbox:
+    Type: AWS::EC2::Instance
+    Properties:
+      Parameters:
+        StackPrefix: !Ref StackPrefix
+      TemplateURL: jumpbox.yaml
+
 Outputs:
   VPCId:
     Description: Private EKS VPC ID
