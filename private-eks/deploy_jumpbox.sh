@@ -6,4 +6,5 @@ aws cloudformation create-stack \
     --stack-name jumpbox \
     --template-body file://cf-dev/jumpbox.yaml
 
+sleep 10
 aws ec2 describe-key-pairs --key-names jumpbox-keypair --query 'KeyPairs[0].KeyFingerprint'
