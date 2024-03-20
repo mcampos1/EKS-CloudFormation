@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Jumpbox for Private EKS Cluster'
+
+# Parameters:
+  # VpcId:
+  #   Type: AWS::EC2::VPC::Id
+  #   Description: VPC ID where the EC2 instance will be launched
+  # SubnetId:
+  #   Type: AWS::EC2::Subnet::Id
+  #   Description: Subnet ID within the VPC where the EC2 instance will be launched
+  # KeyName:
+  #   Type: AWS::EC2::KeyPair::KeyName
+  #   Description: Name of an existing EC2 KeyPair to enable SSH access to the EC2 instance
+
+Resources:
+  Jumpbox:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.large
+      KeyName: !Ref JumpboxKeyPair
+      ImageId: ami-04306748291e2183c # spel-minimal-rhel-7-hvm-2024.02.1.x86_64-gp3 - AMI ID will change depending on region
+      SubnetId: !ImportValue PublicSubnetId
+
+  JumpboxKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: jumpbox-keypair
+
+  JumpboxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Jumpbox
+      VpcId: !ImportValue VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.0.0.0/16
+
+  JumpboxEBSVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: us-gov-west-1a
+      Size: 100 # Specify the size of the volume in GiB
+
+  JumpboxVolumeAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      InstanceId: !Ref Jumpbox
+      VolumeId: !Ref JumpboxEBSVolume
+      Device: /dev/xvda # Specify the device mount point on the EC2 instance
+
+Outputs:
+
+  JumpboxPublicIP:
+    Description: Public IP address of the Jumpbox
+    Value: !GetAtt Jumpbox.PublicIp
+
+  KeyPairUsed:
+    Description: The name of the key pair used for the Jumpbox instance
+    Value: !Ref JumpboxKeyPair
