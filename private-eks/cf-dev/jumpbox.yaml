@@ -52,7 +52,7 @@ Resources:
     Properties:
       InstanceId: !Ref Jumpbox
       VolumeId: !Ref JumpboxEBSVolume
-      Device: /dev/xvda # Specify the device mount point on the EC2 instance
+      Device: /dev/xvdm # Specify the device mount point on the EC2 instance
 
 Outputs:
 
