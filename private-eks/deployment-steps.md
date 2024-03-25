@@ -60,7 +60,7 @@ Verify kubectl version
 
 Install AWS CLI and configure credentials
 
-    sudo yum install aws-cli -y
+    sudo yum install awscli -y
     aws configure #add aws credentials
     aws configure list
     aws sts get-caller-identity #identify user executing aws commands
