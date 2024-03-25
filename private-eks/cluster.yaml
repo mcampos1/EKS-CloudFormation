@@ -96,24 +96,24 @@ Parameters:
       - z1d.3xlarge
       - z1d.6xlarge
       - z1d.12xlarge
-  NodeAutoScalingGroupMinSize:
-    Description: Minimum size of Node Group ASG.
-    Type: Number
-    Default: 1
-  NodeAutoScalingGroupMaxSize:
-    Description: >-
-      Maximum size of Node Group ASG. Set to at least 1 greater than
-      NodeAutoScalingGroupDesiredCapacity.
-    Type: Number
-    Default: 4
-  NodeAutoScalingGroupDesiredCapacity:
-    Description: Desired capacity of Node Group ASG.
-    Type: Number
-    Default: 3
+  # NodeAutoScalingGroupMinSize:
+  #   Description: Minimum size of Node Group ASG.
+  #   Type: Number
+  #   Default: 1
+  # NodeAutoScalingGroupMaxSize:
+  #   Description: >-
+  #     Maximum size of Node Group ASG. Set to at least 1 greater than
+  #     NodeAutoScalingGroupDesiredCapacity.
+  #   Type: Number
+  #   Default: 4
+  # NodeAutoScalingGroupDesiredCapacity:
+  #   Description: Desired capacity of Node Group ASG.
+  #   Type: Number
+  #   Default: 3
   NodeVolumeSize:
     Description: Node volume size
     Type: Number
-    Default: 20
+    Default: "100"
   ClusterName:
     Description: >-
       The cluster name provided when the cluster was created. If it is
@@ -124,13 +124,14 @@ Parameters:
     Description: Unique identifier for the Node Group.
     Type: String
     Default: private-NG1
-  ClusterControlPlaneSecurityGroup:
-    Description: The security group of the cluster control plane.
-    Type: 'AWS::EC2::SecurityGroup::Id'
-    Default: private-eks-nodegroup-sg
+  # ClusterControlPlaneSecurityGroup:
+  #   Description: The security group of the cluster control plane.
+  #   Type: 'AWS::EC2::SecurityGroup::Id'
+  #   Default: ""
   WorkerSecurityGroup:
     Description: Additional security group to grant to worker nodes.
     Type: 'AWS::EC2::SecurityGroup::Id'
+    Default: sg-03b6d1d16cc6a6e8d
   VpcId:
     Description: The VPC of the worker instances
     Type: 'AWS::EC2::VPC::Id'
@@ -142,6 +143,8 @@ Parameters:
   Subnets:
     Description: The subnets where workers can be created.
     Type: 'List<AWS::EC2::Subnet::Id>'
+    Default: "subnet-0ebf94524e98889ad, subnet-0386ab4d6a18d1c58"
+
   # ClusterAPIEndpoint:
   #   Description: Private API endpoint for EKS cluster
   #   Type: String
@@ -189,9 +192,6 @@ Resources:
     Properties:
       GroupDescription: Security group for all nodes in the cluster
       VpcId: !Ref VpcId
-      Tags:
-        - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
-          Value: owned
   NodeSecurityGroupIngress:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:
@@ -208,7 +208,7 @@ Resources:
         Allow worker Kubelets and pods to receive communication from the cluster
         control plane
       GroupId: !Ref NodeSecurityGroup
-      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      #SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
       IpProtocol: tcp
       FromPort: 1025
       ToPort: 65535
@@ -218,7 +218,7 @@ Resources:
       Description: >-
         Allow the cluster control plane to communicate with worker Kubelet and
         pods
-      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      #GroupId: !Ref ClusterControlPlaneSecurityGroup
       DestinationSecurityGroupId: !Ref NodeSecurityGroup
       IpProtocol: tcp
       FromPort: 1025
@@ -230,7 +230,7 @@ Resources:
         Allow pods running extension API servers on port 443 to receive
         communication from cluster control plane
       GroupId: !Ref NodeSecurityGroup
-      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      #SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
       IpProtocol: tcp
       FromPort: 443
       ToPort: 443
@@ -240,7 +240,7 @@ Resources:
       Description: >-
         Allow the cluster control plane to communicate with pods running
         extension API servers on port 443
-      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      #GroupId: !Ref ClusterControlPlaneSecurityGroup
       DestinationSecurityGroupId: !Ref NodeSecurityGroup
       IpProtocol: tcp
       FromPort: 443
@@ -249,31 +249,51 @@ Resources:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:
       Description: Allow pods to communicate with the cluster API Server
-      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      #GroupId: !Ref ClusterControlPlaneSecurityGroup
       SourceSecurityGroupId: !Ref NodeSecurityGroup
       IpProtocol: tcp
       ToPort: 443
       FromPort: 443
-  NodeGroup:
-    Type: 'AWS::AutoScaling::AutoScalingGroup'
+  NodeGroup: 
+    Type: AWS::EKS::Nodegroup
     Properties:
-      DesiredCapacity: !Ref NodeAutoScalingGroupDesiredCapacity
-      LaunchConfigurationName: !Ref NodeLaunchConfig
-      MinSize: !Ref NodeAutoScalingGroupMinSize
-      MaxSize: !Ref NodeAutoScalingGroupMaxSize
-      VPCZoneIdentifier: !Ref Subnets
-      Tags:
-        - Key: Name
-          Value: !Sub '${ClusterName}-${NodeGroupName}-Node'
-          PropagateAtLaunch: true
-        - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
-          Value: owned
-          PropagateAtLaunch: true
-    UpdatePolicy:
-      AutoScalingRollingUpdate:
-        MaxBatchSize: 1
-        MinInstancesInService: !Ref NodeAutoScalingGroupDesiredCapacity
-        PauseTime: PT5M
+      AmiType: !Ref NodeImageId
+      CapacityType: String
+      ClusterName: !Ref ClusterName
+      DiskSize: !Ref NodeVolumeSize
+      ForceUpdateEnabled: False
+      InstanceTypes: 
+        - !Ref NodeInstanceType
+      NodeRole: !GetAtt NodeInstanceRole.arn
+      RemoteAccess: 
+        Ec2SshKey: !Ref KeyName 
+        SourceSecurityGroups:
+          - sg-01c829f8d3686ab8d
+      ScalingConfig:
+        DesiredSize: 2
+        MaxSize: 3
+        MinSize: 1
+      Subnets: !Ref Subnets
+  # NodeGroup:
+  #   Type: 'AWS::AutoScaling::AutoScalingGroup'
+  #   Properties:
+  #     DesiredCapacity: !Ref NodeAutoScalingGroupDesiredCapacity
+  #     LaunchConfigurationName: !Ref NodeLaunchConfig
+  #     MinSize: !Ref NodeAutoScalingGroupMinSize
+  #     MaxSize: !Ref NodeAutoScalingGroupMaxSize
+  #     VPCZoneIdentifier: !Ref Subnets
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub '${ClusterName}-${NodeGroupName}-Node'
+  #         PropagateAtLaunch: true
+  #       - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
+  #         Value: owned
+  #         PropagateAtLaunch: true
+  #   UpdatePolicy:
+  #     AutoScalingRollingUpdate:
+  #       MaxBatchSize: 1
+  #       MinInstancesInService: !Ref NodeAutoScalingGroupDesiredCapacity
+  #       PauseTime: PT5M
   EKSCluster:
     Type: AWS::EKS::Cluster
     Properties:
@@ -281,11 +301,12 @@ Resources:
       RoleArn: arn:aws-us-gov:iam::713211132808:role/eksClusterRole
       Version: "1.27"  # Specify the desired Kubernetes version
       ResourcesVpcConfig:
-        SecurityGroupIds:
-          - <Security-Group-ID>  # Specify security group(s) for the EKS cluster
+        EndpointPrivateAccess: True
+        EndpointPublicAccess: False
         SubnetIds:
           - subnet-0ebf94524e98889ad
           - subnet-0386ab4d6a18d1c58
+
 
 Outputs:
   ClusterName:
