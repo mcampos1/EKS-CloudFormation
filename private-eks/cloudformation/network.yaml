@@ -19,40 +19,10 @@ Mappings:
       CIDR: "10.0.2.0/24"
     Private2:
       CIDR: "10.0.4.0/24"
-    Private3:
-      CIDR: "10.0.8.0/24"
 
   AZRegions:
-    ap-northeast-1:
-      AZs: ["a", "b", "c"]
-    ap-northeast-2:
-      AZs: ["a", "b", "c"]
-    ap-south-1:
-      AZs: ["a", "b", "c"]
-    ap-southeast-1:
-      AZs: ["a", "b", "c"]
-    ap-southeast-2:
-      AZs: ["a", "b", "c"]
-    ca-central-1:
-      AZs: ["a", "b", "c"]
-    eu-central-1:
-      AZs: ["a", "b", "c"]
-    eu-west-1:
-      AZs: ["a", "b", "c"]
-    eu-west-2:
-      AZs: ["a", "b", "c"]
-    sa-east-1:
-      AZs: ["a", "b", "c"]
-    us-east-1:
-      AZs: ["a", "b", "c"]
-    us-east-2:
-      AZs: ["a", "b", "c"]
-    us-west-1:
-      AZs: ["a", "b", "c"]
-    us-west-2:
-      AZs: ["a", "b", "c"]
     us-gov-west-1:
-      AZs: ["a", "b", "c"]
+      AZs: ["a", "b"]
 
 Conditions:
   CreateProxyEndpoint: !Not [!Equals [!Ref HttpProxyServiceName, ""]]
@@ -114,27 +84,6 @@ Resources:
               - "-private-"
               - !Select [1, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
 
-  PrivateSubnet3:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref PrivateEKSVPC
-      AvailabilityZone:
-        Fn::Sub:
-          - "${AWS::Region}${AZ}"
-          - AZ: !Select [2, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
-      CidrBlock:
-        Fn::FindInMap:
-          - "SubnetConfig"
-          - "Private3"
-          - "CIDR"
-      Tags:
-        - Key: "Name"
-          Value: !Join
-            - ""
-            - - !Sub "${StackPrefix}"
-              - "-private-"
-              - !Select [2, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
-
   JumpboxSubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
@@ -142,7 +91,7 @@ Resources:
       AvailabilityZone:
         Fn::Sub:
           - "${AWS::Region}${AZ}"
-          - AZ: !Select [3, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
+          - AZ: !Select [1, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
       CidrBlock:
         Fn::FindInMap:
           - "SubnetConfig"
@@ -154,7 +103,7 @@ Resources:
             - ""
             - - !Sub "${StackPrefix}"
               - "-private-"
-              - !Select [3, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
+              - !Select [1, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
 
   PrivateRouteTable1:
     Type: "AWS::EC2::RouteTable"
@@ -171,14 +120,6 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub ${StackPrefix}-private-route-table-2
-
-  PrivateRouteTable3:
-    Type: "AWS::EC2::RouteTable"
-    Properties:
-      VpcId: !Ref PrivateEKSVPC
-      Tags:
-        - Key: "Name"
-          Value: !Sub ${StackPrefix}-private-route-table-3
 
   JumpboxRouteTable:
     Type: "AWS::EC2::RouteTable"
@@ -203,14 +144,6 @@ Resources:
         Ref: "PrivateSubnet2"
       RouteTableId:
         Ref: "PrivateRouteTable2"
-
-  PrivateSubnetRouteTableAssociation3:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId:
-        Ref: "PrivateSubnet3"
-      RouteTableId:
-        Ref: "PrivateRouteTable3"
 
   JumpboxSubnetRouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
@@ -249,7 +182,6 @@ Resources:
       RouteTableIds:
         - !Ref PrivateRouteTable1
         - !Ref PrivateRouteTable2
-        - !Ref PrivateRouteTable3
         - !Ref JumpboxRouteTable
       VpcId: !Ref PrivateEKSVPC
 
@@ -265,7 +197,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -280,7 +211,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -295,7 +225,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -310,7 +239,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -325,7 +253,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -340,7 +267,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
 
   STSEndpoint:
@@ -354,7 +280,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -369,7 +294,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -384,7 +308,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
         - !Ref JumpboxSubnet
       VpcId: !Ref PrivateEKSVPC
 
@@ -412,12 +335,6 @@ Outputs:
     Value: !Ref PrivateSubnet2
     Export:
       Name: !Sub "${StackPrefix}-PrivateSubnet2"
-
-  PrivateSubnet3:
-    Description: "SubnetId of private subnet 3"
-    Value: !Ref PrivateSubnet3
-    Export:
-      Name: !Sub "${StackPrefix}-PrivateSubnet3"
 
   JumpboxSubnet:
     Description: "SubnetId of jumpbox subnet"
