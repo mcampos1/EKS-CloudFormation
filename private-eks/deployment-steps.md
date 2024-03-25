@@ -100,3 +100,6 @@ Clear aws config and aws credentials to reflect new changes
 
       > ~/.aws/config
       >~/.aws/credentials
+
+
+      export KUBECONFIG=~/.kube/config
