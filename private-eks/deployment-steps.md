@@ -29,7 +29,7 @@ Install kubectl
 
     curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-01-04/bin/linux/amd64/kubectl 
 
-Verify downloaded binary with SHa-256 checksum
+Verify downloaded binary with SHA-256 checksum
 
     curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-01-04/bin/linux/amd64/kubectl.sha256 
 
