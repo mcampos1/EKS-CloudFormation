@@ -36,6 +36,7 @@ EC2:    https://docs.aws.amazon.com/AWSEC2/latest/APIReference/OperationList-que
     CreateLaunchTemplate
     DeleteLaunchTemplate
     DescribeLaunchTemplate
+    ModifyLaunchTemplate
   Security groups:
     CreateSecurityGroup
     DeleteSecurityGroup
