@@ -1,0 +1,72 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EC2'
+
+Parameters:
+  VpcId:
+    Description: ID of VPC to deploy into
+    Type: String
+  BastionInstanceType:
+    Description: EC2 instance type of bastion host
+    Type: String
+  KeyName:
+    Description: Key pair to use for EC2 instance creation
+    Type: String
+  AMI:
+    Description: Latest RHEL 7 spel-minimal image
+    Type: String
+  Subnet:
+    Description: Bastion subnet (public)
+    Type: String
+  BastionSecurityGroupName:
+    Description: Common name of bastion security group
+    Type: String
+
+Resources:
+  Bastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref BastionInstanceType
+      ImageId: !Ref AMI # Specify your desired AMI ID
+      KeyName: !Ref KeyName  # Specify the name of your existing key pair
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 100  # Size of the root volume in GiBs
+            VolumeType: gp2  # Specify the volume type (e.g., gp2, io1, st1, sc1)
+      SubnetId: !Ref Subnet
+      SecurityGroupIds: !Ref BastionSecurityGroup
+      Tags:
+      - Key: Name
+        Value: bastion-mark
+      - Key: Env
+        Value: Dev
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupName: !Ref BastionSecurityGroupName
+      SecurityGroupIngress: 
+      - CidrIp: 0.0.0.0/0  # Allowing access from any IP address
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      Tags:
+      - Key: Name
+        Value: !Ref BastionSecurityGroupName
+      - Key: Env
+        Value: Dev
+
+Outputs:
+  InstanceId:
+    Description: The instance ID of the EC2 instance
+    Value: !Ref Bastion
+  AMI:
+    Value: !Ref AMI
+  IP:
+    Value: !GetAtt Bastion.PublicIp
+  BastionSecurityGroupId:
+    Value: !GetAtt Bastion.SecurityGroups
+  
+

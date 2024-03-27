@@ -1,6 +1,5 @@
 I put a link next to each category for the API Reference that has all these IAM policy actions.
 
-
 EKS:    https://docs.aws.amazon.com/eks/latest/APIReference/API_Operations.html
   CreateCluster
   CreateNodegroup
@@ -44,5 +43,3 @@ EC2:    https://docs.aws.amazon.com/AWSEC2/latest/APIReference/OperationList-que
   Tags:
     CreateTags
     DeleteTags
-
-
