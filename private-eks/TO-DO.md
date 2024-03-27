@@ -10,4 +10,4 @@
 * Address security controls in cluster design
     * Backup/disaster Recovery: ElasticSearch with Kibana
     * integrate splunk for logging
-    * 
+    * Velero to backup k8s resources
