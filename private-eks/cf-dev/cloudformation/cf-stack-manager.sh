@@ -17,22 +17,6 @@ case "$1" in
           --capabilities CAPABILITY_NAMED_IAM \
           --template-body "file://$TEMPLATE_FILE"
         ;;
-      bastion)
-        STACK_NAME="bastion-stack-mark"
-        TEMPLATE_FILE="stacks/bastion-stack.yaml"
-        aws cloudformation create-stack \
-          --profile default \
-          --region $REGION \
-          --stack-name $STACK_NAME \
-          --capabilities CAPABILITY_NAMED_IAM \
-          --template-body "file://$TEMPLATE_FILE" \
-          --parameters ParameterKey=VpcId,ParameterValue=$VPC_ID \
-          ParameterKey=BastionInstanceType,ParameterValue=$BASTION_INSTANCE_TYPE \
-          ParameterKey=KeyName,ParameterValue=$KEY_PAIR \
-          ParameterKey=AMI,ParameterValue=$BASTION_AMI_ID \
-          ParameterKey=Subnet,ParameterValue=$BASTION_SUBNET \
-          ParameterKey=BastionSecurityGroupName,ParameterValue=$BASTION_SG_NAME
-        ;;
       cluster)
         STACK_NAME="cluster-stack"
         TEMPLATE_FILE="stacks/cluster-stack.yaml"
@@ -48,9 +32,10 @@ case "$1" in
           ParameterKey=ClusterRoleArn,ParameterValue=$CLUSTER_ROLE \
           ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME
         ;;
-      nodegroup)
-        STACK_NAME="nodegroup-stack"
-        TEMPLATE_FILE="stacks/nodegroup-stack.yaml"
+      bastion)
+        STACK_NAME=$BASTION_STACK_NAME
+        TEMPLATE_FILE="stacks/bastion-stack.yaml"
+        BASTION_SG_ID=`aws cloudformation describe-stacks --stack-name ${VPC_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='BastionSubnetId'].OutputValue" --output text`
         aws cloudformation create-stack \
           --profile default \
           --region $REGION \
@@ -58,29 +43,38 @@ case "$1" in
           --capabilities CAPABILITY_NAMED_IAM \
           --template-body "file://$TEMPLATE_FILE" \
           --parameters ParameterKey=VpcId,ParameterValue=$VPC_ID \
+          ParameterKey=BastionInstanceType,ParameterValue=$BASTION_INSTANCE_TYPE \
+          ParameterKey=KeyName,ParameterValue=$KEY_PAIR \
+          ParameterKey=AMI,ParameterValue=$BASTION_AMI_ID \
+          ParameterKey=Subnet,ParameterValue=$BASTION_SUBNET \
+          ParameterKey=BastionSecurityGroupName,ParameterValue=$BASTION_SG_NAME
+        ;;
+      nodegroup)
+        STACK_NAME="nodegroup-stack"
+        TEMPLATE_FILE="stacks/nodegroup-stack.yaml"
+        BASTION_SG=`aws cloudformation describe-stacks --stack-name ${VPC_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='BastionSubnetId'].OutputValue" --output text`
+        CONTROLPLANE_SG=`aws cloudformation describe-stacks --stack-name ${CLUSTER_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='ControlPlaneSecurityGroup'].OutputValue" --output text`
+        aws cloudformation create-stack \
+          --profile default \
+          --region $REGION \
+          --stack-name $STACK_NAME \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --template-body "file://$TEMPLATE_FILE" \
+          --parameters ParameterKey=VpcId,ParameterValue=$VPC_ID \
+          ParameterKey=BastionSecurityGroup,ParameterValue=$BASTION_SG \
+          ParameterKey=ControlPlaneSecurityGroup,ParameterValue=$CONTROLPLANE_SG \
           ParameterKey=Subs,ParameterValue="${WORKER_SUBNETS[*]}" \
           ParameterKey=KeyName,ParameterValue=$KEY_PAIR \
-          ParameterKey=ClusterRoleArn,ParameterValue=$CLUSTER_ROLE \
-          ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME
+          ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME \
+          ParameterKey=NodeGroupRole,ParameterValue=$NODEGROUP_ROLE \
+          ParameterKey=NodeInstanceType,ParameterValue=$NODEGROUP_INSTANCE_TYPE \
+          ParameterKey=NodeVolumeSize,ParameterValue=$NODEGROUP_VOLUME_SIZE \
         ;;
       *)
         echo "Invalid stack type. Options: vpc, bastion, cluster"
         exit 1
         ;;
     esac
-
-    # aws cloudformation create-stack \
-    #   --profile default \
-    #   --region $REGION \
-    #   --stack-name $STACK_NAME \
-    #   --capabilities CAPABILITY_NAMED_IAM \
-    #   --template-body "file://$TEMPLATE_FILE" 
-      # --parameters ParameterKey=KeyName,ParameterValue=$KEY_PAIR \
-      # ParameterKey=NodeInstanceType,ParameterValue=$INSTANCE_TYPE \
-      # ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME \
-      # ParameterKey=ClusterRoleArn,ParameterValue=$CLUSTER_ROLE \
-      # ParameterKey=NodeGroupName,ParameterValue=$NODE_GROUP_NAME \
-      # ParameterKey=NGRole,ParameterValue=$CLUSTER_ROLE
     ;;
   delete)
     case "$2" in
@@ -88,7 +82,7 @@ case "$1" in
         STACK_NAME="vpc-stack"
         ;;
       bastion)
-        STACK_NAME="bastion-stack"
+        STACK_NAME=$BASTION_STACK_NAME
         ;;
       cluster)
         STACK_NAME="cluster-stack"

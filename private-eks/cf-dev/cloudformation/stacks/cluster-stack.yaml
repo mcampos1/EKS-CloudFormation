@@ -40,5 +40,3 @@ Outputs:
   ControlPlaneSecurityGroup:
     Description: The security group of the aws managed controlplane
     Value: !GetAtt EKSCluster.ClusterSecurityGroupId
-    Export:
-      Name: ControlPlaneSecurityGroupId

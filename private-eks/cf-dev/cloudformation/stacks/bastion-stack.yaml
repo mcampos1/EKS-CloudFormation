@@ -25,26 +25,32 @@ Parameters:
 Resources:
   Bastion:
     Type: AWS::EC2::Instance
+    DependsOn: BastionSecurityGroup
     Properties:
       InstanceType: !Ref BastionInstanceType
-      ImageId: !Ref AMI # Specify your desired AMI ID
-      KeyName: !Ref KeyName  # Specify the name of your existing key pair
+      ImageId: !Ref AMI
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: !Ref Subnet
+          GroupSet:
+            - !Ref BastionSecurityGroup
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: 100  # Size of the root volume in GiBs
-            VolumeType: gp2  # Specify the volume type (e.g., gp2, io1, st1, sc1)
-      SubnetId: !Ref Subnet
-      SecurityGroupIds: !Ref BastionSecurityGroup
+            VolumeSize: 100
+            VolumeType: gp2
       Tags:
-      - Key: Name
-        Value: bastion-mark
-      - Key: Env
-        Value: Dev
+        - Key: Name
+          Value: bastion-mark
+        - Key: Env
+          Value: Dev
 
   BastionSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupDescription: Security group for the bastion host
       VpcId: !Ref VpcId
       GroupName: !Ref BastionSecurityGroupName
       SecurityGroupIngress: 
@@ -67,6 +73,4 @@ Outputs:
   IP:
     Value: !GetAtt Bastion.PublicIp
   BastionSecurityGroupId:
-    Value: !GetAtt Bastion.SecurityGroups
-  
-
+    Value: !Ref BastionSecurityGroup
