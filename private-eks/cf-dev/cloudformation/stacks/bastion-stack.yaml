@@ -9,6 +9,9 @@ Parameters:
   BastionInstanceType:
     Description: EC2 instance type of bastion host
     Type: String
+  BastionName:
+    Description: Name of EC2 bastion host
+    Type: String
   KeyName:
     Description: Key pair to use for EC2 instance creation
     Type: String
@@ -20,6 +23,9 @@ Parameters:
     Type: String
   BastionSecurityGroupName:
     Description: Common name of bastion security group
+    Type: String
+  ClusterControlPlaneSecurityGroup:
+    Description: The security group of the cluster control plane.
     Type: String
 
 Resources:
@@ -43,7 +49,7 @@ Resources:
             VolumeType: gp2
       Tags:
         - Key: Name
-          Value: bastion-mark
+          Value: !Ref BastionName
         - Key: Env
           Value: Dev
 
@@ -63,6 +69,16 @@ Resources:
         Value: !Ref BastionSecurityGroupName
       - Key: Env
         Value: Dev
+
+  BastionSecurityGroupToClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: BastionSecurityGroup
+    Properties:
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !Ref BastionSecurityGroup
 
 Outputs:
   InstanceId:

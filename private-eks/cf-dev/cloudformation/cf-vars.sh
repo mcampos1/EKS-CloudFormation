@@ -3,7 +3,7 @@
 ## VPC Variables ##
 VPC_STACK_NAME="vpc-stack"
 REGION="us-gov-west-1"
-VPC_ID="vpc-00801b292be62f3d9	"
+VPC_ID="vpc-00801b292be62f3d9"
 WORKER_SUBNETS=("subnet-0653b88ded9a8f917 subnet-0d84899f36fcb303a")
 
 ## EKS Cluster Variables ##
@@ -17,7 +17,7 @@ ENABLE_PUBLIC_ACCESS=false
 
 ## NodeGroup Variables ##
 NODEGROUP_STACK_NAME="nodegroup-stack"
-NODEGROUP_NAME="nodegroup-mark"
+NODEGROUP_NAME="$CLUSTER_NAME-nodegroup"
 NODEGROUP_ROLE="arn:aws-us-gov:iam::713211132808:role/eks-nodegroup-role"
 NODEGROUP_INSTANCE_TYPE="t3.medium"
 NODEGROUP_AMI_ID="ami-068d2becc83de8e98"
