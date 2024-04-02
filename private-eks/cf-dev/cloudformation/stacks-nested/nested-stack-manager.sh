@@ -20,10 +20,10 @@ case "$1" in
         BastionInstanceType=$BASTION_INSTANCE_TYPE \
         AMI=$BASTION_AMI_ID \
         BastionName=$BASTION_NAME \
-        BastionSecurityGroupName=$BASTION_SG_NAME
-        # NodeVolumeSize=$NODEGROUP_VOLUME_SIZE \
-        # NodeInstanceType=$NODEGROUP_INSTANCE_TYPE \
-        # NodeGroupRole=$NODEGROUP_ROLE \
+        BastionSecurityGroupName=$BASTION_SG_NAME \
+        NodeVolumeSize=$NODEGROUP_VOLUME_SIZE \
+        NodeInstanceType=$NODEGROUP_INSTANCE_TYPE \
+        NodeGroupRole=$NODEGROUP_ROLE \
     ;;
   delete)
     aws cloudformation delete-stack \

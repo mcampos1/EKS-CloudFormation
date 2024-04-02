@@ -10,7 +10,6 @@ Parameters:
   NodeVolumeSize:
     Description: Node volume size
     Type: Number
-    Default: 20
   NodeInstanceType:
     Description: EC2 instance type for the node instances
     Type: String

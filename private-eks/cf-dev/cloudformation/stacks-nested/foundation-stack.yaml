@@ -12,19 +12,28 @@ Parameters:
       incorrect, nodes will not be able to join the cluster.
     Type: String
   ClusterRoleArn:
-    Description: EKS Role ARN
+    Description: EKS cluster role ARN
+    Type: String
+  AMI:
+    Description: AMI ID for the bastion host
     Type: String
   BastionInstanceType:
     Description: EC2 instance type for the bastion host
     Type: String
-  AMI:
-    Description: EC2 instance type for the bastion host
-    Type: String
   BastionName:
-    Description: EC2 instance type for the bastion host
+    Description: Common name for the bastion host
     Type: String
   BastionSecurityGroupName:
-    Description: EC2 instance type for the bastion host
+    Description: Common name for the bastion security group
+    Type: String
+  NodeVolumeSize:
+    Description: Node volume size
+    Type: Number
+  NodeInstanceType:
+    Description: EC2 instance type for the node instances
+    Type: String
+  NodeGroupRole:
+    Description: ARN of node group role
     Type: String
 
 Resources:
@@ -32,9 +41,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/vpc-stack.yaml
-      Tags:
-        - Key: Name
-          Value: "nested-vpc-stack"
 
   ClusterStack:
     Type: AWS::CloudFormation::Stack
@@ -56,11 +62,22 @@ Resources:
         AMI: !Ref AMI
         KeyName: !Ref KeyName
         BastionName: !Ref BastionName
-        ClusterName: !Ref ClusterName
-        ClusterRoleArn: !Ref ClusterRoleArn
         BastionInstanceType: !Ref BastionInstanceType
         BastionSecurityGroupName: !Ref BastionSecurityGroupName
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         Subnet: !GetAtt VpcStack.Outputs.BastionSubnetId
         ClusterControlPlaneSecurityGroup: !GetAtt ClusterStack.Outputs.ControlPlaneSecurityGroup
 
+  NodeGroupStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: BastionStack
+    Properties:
+      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/nodegroup-stack.yaml
+      Parameters:
+        KeyName: !Ref KeyName
+        ClusterName: !Ref ClusterName
+        NodeGroupRole: !Ref NodeGroupRole
+        NodeVolumeSize: !Ref NodeVolumeSize
+        NodeInstanceType: !Ref NodeInstanceType
+        Subs: !GetAtt VpcStack.Outputs.WorkerSubnetIds
+        BastionSecurityGroup: !GetAtt BastionStack.Outputs.BastionSecurityGroupId
