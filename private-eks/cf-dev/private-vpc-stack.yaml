@@ -19,16 +19,22 @@ Parameters:
     Default: 10.0.1.0/24
     Description: CidrBlock for private subnet 02 within the VPC
 
+  PublicSubnet01Block: #create public subnet with nat gateway
+    Type: String
+    Default: 10.0.2.0/24
+    Description: CidrBlock for public subnet 01 within the VPC
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       -
         Label:
-          default: "Worker Network Configuration"
+          default: "Mimic client VPC"
         Parameters:
           - VpcBlock
           - PrivateSubnet01Block
           - PrivateSubnet02Block
+          - PublicSubnet01Block
 
 Resources:
   VPC:
@@ -40,6 +46,15 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub '${AWS::StackName}-VPC'
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
 
   PrivateRouteTable01:
     Type: AWS::EC2::RouteTable
@@ -60,6 +75,16 @@ Resources:
         Value: Private Subnet AZ2
       - Key: Network
         Value: Private02
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public Subnet AZ1
+      - Key: Network
+        Value: Public
 
   PrivateSubnet01:
     Type: AWS::EC2::Subnet
@@ -101,6 +126,27 @@ Resources:
       - Key: kubernetes.io/role/internal-elb
         Value: 1
 
+  PublicSubnet01:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Subnet 01
+    Properties:
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+        - '0'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: PublicSubnet01Block
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-PublicSubnet01"
+      - Key: kubernetes.io/role/elb
+        Value: 1
+
   PrivateSubnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -113,11 +159,39 @@ Resources:
       SubnetId: !Ref PrivateSubnet02
       RouteTableId: !Ref PrivateRouteTable02
 
-  ControlPlaneSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+  PublicSubnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      GroupDescription: Cluster communication with worker nodes
-      VpcId: !Ref VPC
+      SubnetId: !Ref PublicSubnet01
+      RouteTableId: !Ref PublicRouteTable
+
+  NatGateway01:
+    DependsOn:
+    - NatGatewayEIP1
+    - PublicSubnet01
+    - VPCGatewayAttachment
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt 'NatGatewayEIP1.AllocationId'
+      SubnetId: !Ref PublicSubnet01
+      Tags:
+      - Key: Name
+        Value: !Sub '${AWS::StackName}-NatGatewayAZ1'
+
+  NatGatewayEIP1:
+    DependsOn:
+    - VPCGatewayAttachment
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+
+  PublicRoute:
+    DependsOn: VPCGatewayAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
 
 Outputs:
 
@@ -127,11 +201,11 @@ Outputs:
     Export:
       Name: PrivateSubnetIds
 
-  ControlPlaneSecurityGroupId:
-    Description: Security group for the cluster control plane communication with worker nodes
-    Value: !Ref ControlPlaneSecurityGroup
-    Export: 
-      Name: ControlPlaneSecurityGroupId
+  PublicSubnetId:
+    Description: Public Subnets ID in the VPC
+    Value: !Ref PublicSubnet01
+    Export:
+      Name: PublicSubnetId
 
   VpcId:
     Description: The VPC Id

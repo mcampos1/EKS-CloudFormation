@@ -1,0 +1,92 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EC2'
+
+Parameters:
+  VpcId:
+    Description: ID of VPC to deploy into
+    Type: String
+  BastionInstanceType:
+    Description: EC2 instance type of bastion host
+    Type: String
+  AMI:
+    Description: Latest RHEL 7 spel-minimal image
+    Type: String
+  KeyName:
+    Description: Key pair to use for EC2 instance creation
+    Type: String
+  Subnet:
+    Description: Bastion subnet (public)
+    Type: String
+  BastionName:
+    Description: Name of EC2 bastion host
+    Type: String
+  BastionSecurityGroupName:
+    Description: Common name of bastion security group
+    Type: String
+  ClusterControlPlaneSecurityGroup:
+    Description: The security group of the cluster control plane.
+    Type: String
+
+Resources:
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the bastion host
+      VpcId: !Ref VpcId
+      GroupName: !Ref BastionSecurityGroupName
+      SecurityGroupIngress: 
+      - CidrIp: 0.0.0.0/0  # Allowing access from any IP address
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      Tags:
+      - Key: Name
+        Value: !Ref BastionSecurityGroupName
+      - Key: Env
+        Value: Dev
+
+  Bastion:
+    Type: AWS::EC2::Instance
+    DependsOn: BastionSecurityGroup
+    Properties:
+      InstanceType: !Ref BastionInstanceType
+      ImageId: !Ref AMI
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: !Ref Subnet
+          GroupSet:
+            - !Ref BastionSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 100
+            VolumeType: gp2
+      Tags:
+        - Key: Name
+          Value: !Ref BastionName
+        - Key: Env
+          Value: Dev
+
+  BastionSecurityGroupToClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: BastionSecurityGroup
+    Properties:
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !Ref BastionSecurityGroup
+
+Outputs:
+  InstanceId:
+    Description: The instance ID of the EC2 instance
+    Value: !Ref Bastion
+  AMI:
+    Value: !Ref AMI
+  IP:
+    Value: !GetAtt Bastion.PublicIp
+  BastionSecurityGroupId:
+    Value: !Ref BastionSecurityGroup

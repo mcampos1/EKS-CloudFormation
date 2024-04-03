@@ -1,0 +1,47 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Amazon EKS - Node Group
+Parameters:
+  ClusterName:
+    Description: >-
+      The cluster name provided when the cluster was created. If it is
+      incorrect, nodes will not be able to join the cluster.
+    Type: String
+  NodeVolumeSize:
+    Description: Node volume size
+    Type: Number
+  NodeInstanceType:
+    Description: EC2 instance type for the node instances
+    Type: String
+  NodeGroupRole:
+    Description: ARN of node group role
+    Type: String
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+  BastionSecurityGroup:
+    Description: Additional security group to grant to worker nodes.
+    Type: 'AWS::EC2::SecurityGroup::Id'
+  Subs:
+    Description: The subnets where workers can be created.
+    Type: CommaDelimitedList
+
+Resources:
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      AmiType: AL2_x86_64
+      ClusterName: !Ref ClusterName
+      DiskSize: !Ref NodeVolumeSize
+      InstanceTypes:
+        - !Ref NodeInstanceType
+      NodeRole: !Ref NodeGroupRole
+      RemoteAccess:
+        Ec2SshKey: !Ref KeyName
+        SourceSecurityGroups:
+          - !Ref BastionSecurityGroup
+      ScalingConfig:
+        DesiredSize: 2
+        MaxSize: 3
+        MinSize: 1
+      Subnets: !Ref Subs
