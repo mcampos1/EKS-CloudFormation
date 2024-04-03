@@ -7,9 +7,19 @@ source cf-vars.sh
 case "$1" in
   deploy)
     case "$2" in
+      foundation)
+        STACK_NAME="foundation-stack"
+        TEMPLATE_FILE="foundation-stack.yaml"
+        aws cloudformation create-stack \
+          --profile default \
+          --region $REGION \
+          --stack-name $STACK_NAME \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --template-body "file://$TEMPLATE_FILE"
+        ;;
       vpc)
         STACK_NAME="vpc-stack"
-        TEMPLATE_FILE="stacks/vpc-stack.yaml"
+        TEMPLATE_FILE="vpc-stack.yaml"
         aws cloudformation create-stack \
           --profile default \
           --region $REGION \
@@ -19,7 +29,7 @@ case "$1" in
         ;;
       cluster)
         STACK_NAME="cluster-stack"
-        TEMPLATE_FILE="stacks/cluster-stack.yaml"
+        TEMPLATE_FILE="cluster-stack.yaml"
         aws cloudformation create-stack \
           --profile default \
           --region $REGION \
@@ -34,7 +44,7 @@ case "$1" in
         ;;
       bastion)
         STACK_NAME=$BASTION_STACK_NAME
-        TEMPLATE_FILE="stacks/bastion-stack.yaml"
+        TEMPLATE_FILE="bastion-stack.yaml"
         BASTION_SG_ID=$(aws cloudformation describe-stacks --stack-name ${VPC_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='BastionSubnetId'].OutputValue" --output text)
         CONTROLPLANE_SG=$(aws cloudformation describe-stacks --stack-name ${CLUSTER_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='ControlPlaneSecurityGroup'].OutputValue" --output text)
         aws cloudformation deploy \
@@ -53,29 +63,9 @@ case "$1" in
               BastionSecurityGroupName=$BASTION_SG_NAME \
               ClusterControlPlaneSecurityGroup=$CONTROLPLANE_SG
         ;;
-      # bastion)
-      #   STACK_NAME=$BASTION_STACK_NAME
-      #   TEMPLATE_FILE="stacks/bastion-stack.yaml"
-      #   BASTION_SG_ID=(aws cloudformation describe-stacks --stack-name ${VPC_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='BastionSubnetId'].OutputValue" --output text)
-      #   CONTROLPLANE_SG=(aws cloudformation describe-stacks --stack-name ${CLUSTER_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='ControlPlaneSecurityGroup'].OutputValue" --output text)
-      #   aws cloudformation create-stack \
-      #     --profile default \
-      #     --region $REGION \
-      #     --stack-name $STACK_NAME \
-      #     --capabilities CAPABILITY_NAMED_IAM \
-      #     --template-body "file://$TEMPLATE_FILE" \
-      #     --parameters ParameterKey=VpcId,ParameterValue=$VPC_ID \
-      #     ParameterKey=BastionInstanceType,ParameterValue=$BASTION_INSTANCE_TYPE \
-      #     ParameterKey=BastionName,ParameterValue=$BASTION_NAME \
-      #     ParameterKey=KeyName,ParameterValue=$KEY_PAIR \
-      #     ParameterKey=AMI,ParameterValue=$BASTION_AMI_ID \
-      #     ParameterKey=Subnet,ParameterValue=$BASTION_SUBNET \
-      #     ParameterKey=BastionSecurityGroupName,ParameterValue=$BASTION_SG_NAME \
-      #     ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue=$CONTROLPLANE_SG
-      #   ;;
       nodegroup)
         STACK_NAME="nodegroup-stack"
-        TEMPLATE_FILE="stacks/nodegroup-stack.yaml"
+        TEMPLATE_FILE="nodegroup-stack.yaml"
         BASTION_SG=`aws cloudformation describe-stacks --stack-name ${BASTION_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='BastionSecurityGroupId'].OutputValue" --output text`
         CONTROLPLANE_SG=`aws cloudformation describe-stacks --stack-name ${CLUSTER_STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='ControlPlaneSecurityGroup'].OutputValue" --output text`
         aws cloudformation create-stack \

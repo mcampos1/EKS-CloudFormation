@@ -4,7 +4,7 @@
 VPC_STACK_NAME="vpc-stack"
 REGION="us-gov-west-1"
 VPC_ID="vpc-00801b292be62f3d9"
-WORKER_SUBNETS=("subnet-0653b88ded9a8f917 subnet-0d84899f36fcb303a")
+#WORKER_SUBNETS=("")
 
 ## EKS Cluster Variables ##
 CLUSTER_STACK_NAME='cluster-stack'
