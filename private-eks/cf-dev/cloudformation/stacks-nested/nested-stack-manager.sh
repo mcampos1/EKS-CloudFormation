@@ -31,7 +31,7 @@ case "$1" in
       --stack-name foundation-stack 
     ;;
   *)
-    echo "Usage: $0 {deploy|delete} {vpc|cluster|bastion|nodegroup}"
+    echo "Usage: $0 {deploy|delete}"
     exit 1
     ;;
 esac
