@@ -79,5 +79,8 @@ Resources:
         NodeGroupRole: !Ref NodeGroupRole
         NodeVolumeSize: !Ref NodeVolumeSize
         NodeInstanceType: !Ref NodeInstanceType
-        Subs: !GetAtt VpcStack.Outputs.WorkerSubnetIds
+        Subs:
+          Fn::GetAtt:
+            - VpcStack
+            - Outputs.WorkerSubnetIds
         BastionSecurityGroup: !GetAtt BastionStack.Outputs.BastionSecurityGroupId

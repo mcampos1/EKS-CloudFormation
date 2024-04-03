@@ -24,7 +24,7 @@ Parameters:
     Type: 'AWS::EC2::SecurityGroup::Id'
   Subs:
     Description: The subnets where workers can be created.
-    Type: String
+    Type: CommaDelimitedList
 
 Resources:
   NodeGroup:
