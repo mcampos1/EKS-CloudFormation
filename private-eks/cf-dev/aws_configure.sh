@@ -1,7 +1,5 @@
 #!/bin/bash
 CLUSTER_NAME="private-eks"
-ACCESS_KEY=AKIA2MDVSHOEKCXZKR77
-SECRET_KEY=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
 INSTANCE_ID=i-048eaacbf7e9823aa
 INSTANCE_PROFILE=arn:aws-us-gov:iam::713211132808:instance-profile/eks-bastion-role
 
