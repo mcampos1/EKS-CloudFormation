@@ -3,8 +3,8 @@ CLUSTER_NAME="private-eks"
 INSTANCE_ID=i-048eaacbf7e9823aa
 INSTANCE_PROFILE=arn:aws-us-gov:iam::713211132808:instance-profile/eks-bastion-role
 
-aws configure set aws_access_key_id $ACCESS_KEY
-aws configure set aws_secret_access_key $SECRET_KEY
+# aws configure set aws_access_key_id $ACCESS_KEY
+# aws configure set aws_secret_access_key $SECRET_KEY
 aws ec2 associate-iam-instance-profile --instance-id $INSTANCE_ID --iam-instance-profile Arn=$INSTANCE_PROFILE
 #set kubeconfig to point to cluster
 aws eks update-kubeconfig --region us-gov-west-1 --name $CLUSTER_NAME
