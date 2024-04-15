@@ -60,7 +60,7 @@ Verify kubectl version
 
 Install AWS CLI and configure credentials
 
-    sudo yum install aws-cli -y
+    sudo yum install awscli -y
     aws configure #add aws credentials
     aws configure list
     aws sts get-caller-identity #identify user executing aws commands
@@ -94,4 +94,12 @@ add new group under mapRoles:
     - groups:
         - system:masters
         rolearn: arn:aws:iam::111122223333:role/my-console-viewer-role #same role that is attached to ec2-instance
-        username: eks-
+        username: role name
+
+Clear aws config and aws credentials to reflect new changes
+
+      > ~/.aws/config
+      >~/.aws/credentials
+
+
+      export KUBECONFIG=~/.kube/config
