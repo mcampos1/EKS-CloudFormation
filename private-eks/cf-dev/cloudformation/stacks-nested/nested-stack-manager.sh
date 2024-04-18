@@ -9,7 +9,7 @@ case "$1" in
     aws cloudformation deploy \
       --profile default \
       --region $REGION \
-      --stack-name foundation-stack \
+      --stack-name $STACK_NAME \
       --capabilities CAPABILITY_NAMED_IAM \
       --template-file foundation-stack.yaml \
       --disable-rollback \
@@ -29,7 +29,7 @@ case "$1" in
   delete)
     aws cloudformation delete-stack \
       --region $REGION \
-      --stack-name foundation-stack 
+      --stack-name $STACK_NAME
     ;;
   *)
     echo "Usage: $0 {deploy|delete}"
