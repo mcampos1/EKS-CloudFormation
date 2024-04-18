@@ -20,7 +20,7 @@ NODEGROUP_VOLUME_SIZE=100
 
 ## Bastion Host Variables ##
 BASTION_NAME="bastion-mark"
-BASTION_ROLE="arn:aws-us-gov:iam::713211132808:role/eks-bastion-role"
+# BASTION_ROLE="arn:aws-us-gov:iam::713211132808:role/eks-bastion-role"
 BASTION_INSTANCE_TYPE="t2.micro"
 # BASTION_AMI_ID="ami-04306748291e2183c"
 BASTION_AMI_ID="ami-0b09154de2f794b35"
