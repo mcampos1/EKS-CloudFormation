@@ -82,7 +82,7 @@ Resources:
           #cloud-boothook
           #!/bin/bash
 
-          aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh .
+          aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/maintuser
 
   BastionSecurityGroupToClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress
