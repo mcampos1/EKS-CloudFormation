@@ -78,7 +78,7 @@ Resources:
         - Key: Name
           Value: !Ref BastionName
       UserData:
-        Fn::Base64: !Sub |
+        Fn::Base64: |
           #!/bin/bash
 
           aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/maintuser
