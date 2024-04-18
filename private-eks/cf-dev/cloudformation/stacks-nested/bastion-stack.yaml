@@ -81,7 +81,7 @@ Resources:
         Fn::Base64: |
           #!/bin/bash
 
-          aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/maintuser
+          aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/ec2-user/configure_bastion.sh
 
   BastionSecurityGroupToClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress
