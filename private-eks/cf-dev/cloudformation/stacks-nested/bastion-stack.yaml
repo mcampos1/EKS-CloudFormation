@@ -21,11 +21,11 @@ Parameters:
   BastionName:
     Description: Name of EC2 bastion host
     Type: String
-  BastionSecurityGroupName:
-    Description: Common name of bastion security group
-    Type: String
   ClusterControlPlaneSecurityGroup:
     Description: The security group of the cluster control plane.
+    Type: String
+  BastionSecurityGroup:
+    Description: The ID of the security group for the bastion host
     Type: String
 
 Resources:
@@ -56,26 +56,8 @@ Resources:
       Roles:
         - !Ref BastionRole
 
-  BastionSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for the bastion host
-      VpcId: !Ref VpcId
-      GroupName: !Ref BastionSecurityGroupName
-      SecurityGroupIngress: 
-      - CidrIp: 0.0.0.0/0  # Allowing access from any IP address
-        IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-      Tags:
-      - Key: Name
-        Value: !Ref BastionSecurityGroupName
-      - Key: Env
-        Value: Dev
-
   Bastion:
     Type: AWS::EC2::Instance
-    DependsOn: BastionSecurityGroup
     Properties:
       IamInstanceProfile: !Ref BastionInstanceProfile
       InstanceType: !Ref BastionInstanceType
@@ -95,8 +77,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref BastionName
-        - Key: Env
-          Value: Dev
       UserData:
         Fn::Base64: !Sub |
           #cloud-boothook
@@ -113,11 +93,13 @@ Resources:
           # sudo firewall-cmd --permanent --add-port=8850/tcp
           # sudo firewall-cmd --reload
 
+          # Install kubectl
           curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-01-04/bin/linux/amd64/kubectl
           chmod +x ./kubectl
           mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
           echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
 
+          # Install aws cli
           source ~/.bash_profile
           if ! command -v aws &> /dev/null
           then
@@ -126,11 +108,18 @@ Resources:
             ./aws/install --update
           fi
 
+          # Install eksctl
+          # curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          # mv /tmp/eksctl /usr/bin
+
+          # # Install helm
+          # tar -zxvf helm-v3.0.0-linux-amd64.tar.gz
+
+          # Update kubeconfig
           aws eks update-kubeconfig --name nested-cluster-mark --region us-gov-west-1
 
   BastionSecurityGroupToClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress
-    DependsOn: BastionSecurityGroup
     Properties:
       GroupId: !Ref ClusterControlPlaneSecurityGroup
       IpProtocol: tcp
@@ -146,5 +135,3 @@ Outputs:
     Value: !Ref AMI
   IP:
     Value: !GetAtt Bastion.PublicIp
-  BastionSecurityGroupId:
-    Value: !Ref BastionSecurityGroup

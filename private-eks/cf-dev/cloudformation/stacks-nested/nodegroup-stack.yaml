@@ -19,16 +19,37 @@ Parameters:
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: String
-  BastionSecurityGroup:
-    Description: Additional security group to grant to worker nodes.
-    Type: 'AWS::EC2::SecurityGroup::Id'
   Subs:
     Description: The subnets where workers can be created.
     Type: CommaDelimitedList
+  VpcId:
+    Description: ID of VPC to deploy into
+    Type: String
+  BastionSecurityGroupName:
+    Description: Common name of bastion security group
+    Type: String
 
 Resources:
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the bastion host
+      VpcId: !Ref VpcId
+      GroupName: !Ref BastionSecurityGroupName
+      SecurityGroupIngress: 
+      - CidrIp: 0.0.0.0/0  # Allowing access from any IP address
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      Tags:
+      - Key: Name
+        Value: !Ref BastionSecurityGroupName
+      - Key: Env
+        Value: Dev
+
   NodeGroup:
     Type: AWS::EKS::Nodegroup
+    DependsOn: BastionSecurityGroup
     Properties:
       AmiType: AL2_x86_64
       ClusterName: !Ref ClusterName
@@ -45,3 +66,8 @@ Resources:
         MaxSize: 3
         MinSize: 1
       Subnets: !Ref Subs
+
+Outputs:
+  BastionSecurityGroupId:
+    Description: "Security Group ID for Bastion"
+    Value: !Ref BastionSecurityGroup

@@ -35,6 +35,9 @@ Parameters:
   NodeGroupRole:
     Description: ARN of node group role
     Type: String
+  # NodeGroupStackName:
+  #   Type: String
+  #   Description: The name of the node group stack
 
 Resources:
   VpcStack:
@@ -53,24 +56,9 @@ Resources:
         ClusterRoleArn: !Ref ClusterRoleArn
         Subs: !GetAtt VpcStack.Outputs.WorkerSubnetIds
 
-  BastionStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: ClusterStack
-    Properties:
-      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/bastion-stack.yaml
-      Parameters:
-        AMI: !Ref AMI
-        KeyName: !Ref KeyName
-        BastionName: !Ref BastionName
-        BastionInstanceType: !Ref BastionInstanceType
-        BastionSecurityGroupName: !Ref BastionSecurityGroupName
-        VpcId: !GetAtt VpcStack.Outputs.VpcId
-        Subnet: !GetAtt VpcStack.Outputs.BastionSubnetId
-        ClusterControlPlaneSecurityGroup: !GetAtt ClusterStack.Outputs.ControlPlaneSecurityGroup
-
   NodeGroupStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: BastionStack
+    DependsOn: ClusterStack
     Properties:
       TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/nodegroup-stack.yaml
       Parameters:
@@ -83,4 +71,20 @@ Resources:
           Fn::GetAtt:
             - VpcStack
             - Outputs.WorkerSubnetIds
-        BastionSecurityGroup: !GetAtt BastionStack.Outputs.BastionSecurityGroupId
+        BastionSecurityGroupName: !Ref BastionSecurityGroupName
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+
+  BastionStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: NodeGroupStack
+    Properties:
+      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/bastion-stack.yaml
+      Parameters:
+        AMI: !Ref AMI
+        KeyName: !Ref KeyName
+        BastionName: !Ref BastionName
+        BastionInstanceType: !Ref BastionInstanceType
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+        Subnet: !GetAtt VpcStack.Outputs.BastionSubnetId
+        ClusterControlPlaneSecurityGroup: !GetAtt ClusterStack.Outputs.ControlPlaneSecurityGroup
+        BastionSecurityGroup: !GetAtt NodeGroupStack.Outputs.BastionSecurityGroupId

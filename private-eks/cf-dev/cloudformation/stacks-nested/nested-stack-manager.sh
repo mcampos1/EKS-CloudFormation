@@ -24,6 +24,7 @@ case "$1" in
         NodeVolumeSize=$NODEGROUP_VOLUME_SIZE \
         NodeInstanceType=$NODEGROUP_INSTANCE_TYPE \
         NodeGroupRole=$NODEGROUP_ROLE \
+        NodeGroupStackName=$NODEGROUP_STACK_NAME
     ;;
   delete)
     aws cloudformation delete-stack \
