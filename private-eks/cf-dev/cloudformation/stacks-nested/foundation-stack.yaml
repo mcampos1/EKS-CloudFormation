@@ -35,9 +35,6 @@ Parameters:
   NodeGroupRole:
     Description: ARN of node group role
     Type: String
-  # NodeGroupStackName:
-  #   Type: String
-  #   Description: The name of the node group stack
 
 Resources:
   VpcStack:

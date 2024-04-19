@@ -36,3 +36,8 @@ Outputs:
   ControlPlaneSecurityGroup:
     Description: The security group of the aws managed controlplane
     Value: !GetAtt EKSCluster.ClusterSecurityGroupId
+  ClusterARN:
+    Description: "ARN of the EKS Cluster"
+    Value: !Ref EKSCluster
+    Export:
+      Name: { Name: "EksClusterARN" }

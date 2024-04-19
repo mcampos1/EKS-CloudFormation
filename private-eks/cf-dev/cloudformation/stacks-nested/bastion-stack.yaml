@@ -49,6 +49,17 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy'
         - 'arn:aws:iam::aws:policy/AWSCloudFormationFullAccess'
         - 'arn:aws:iam::aws:policy/CloudWatchFullAccess'
+      Policies:
+        - PolicyName: CustomBastionRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'eks:Describe*'
+                  - 'eks:List*'
+                  - 'eks:Get*'
+                Resource: !ImportValue EksClusterARN
 
   BastionInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
@@ -70,18 +81,23 @@ Resources:
           GroupSet:
             - !Ref BastionSecurityGroup
       BlockDeviceMappings:
-        - DeviceName: /dev/sda1
+        - DeviceName: /dev/xvda
           Ebs:
             VolumeSize: 100
-            VolumeType: gp2
+            VolumeType: gp3
+      # BlockDeviceMappings:
+      #   - DeviceName: /dev/sda1
+      #     Ebs:
+      #       VolumeSize: 100
+      #       VolumeType: gp2
       Tags:
         - Key: Name
           Value: !Ref BastionName
       UserData:
         Fn::Base64: |
           #!/bin/bash
-
           aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/ec2-user/configure_bastion.sh
+          chown ec2-user:ec2-user /home/ec2-user/configure_bastion.sh && chmod +x /home/ec2-user/configure_bastion.sh
 
   BastionSecurityGroupToClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress

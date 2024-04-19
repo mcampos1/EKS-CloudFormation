@@ -1,4 +1,3 @@
-#cloud-boothook
 #!/bin/bash
 
 yum update -y

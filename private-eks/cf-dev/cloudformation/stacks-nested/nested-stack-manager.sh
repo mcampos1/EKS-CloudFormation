@@ -6,6 +6,11 @@ source cf-vars.sh
 
 case "$1" in
   deploy)
+    aws s3 cp ./vpc-stack.yaml s3://cloudformation-bucket-04022024
+    aws s3 cp ./cluster-stack.yaml s3://cloudformation-bucket-04022024
+    aws s3 cp ./nodegroup-stack.yaml s3://cloudformation-bucket-04022024
+    aws s3 cp ./bastion-stack.yaml s3://cloudformation-bucket-04022024
+    aws s3 cp ../standalone-scripts/configure_bastion.sh s3://cloudformation-bucket-04022024
     aws cloudformation deploy \
       --profile default \
       --region $REGION \
