@@ -6,9 +6,6 @@ Parameters:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: String
   ClusterName:
-    Description: >-
-      The cluster name provided when the cluster was created. If it is
-      incorrect, nodes will not be able to join the cluster.
     Type: String
   ClusterRoleArn:
     Description: EKS Role ARN
@@ -39,10 +36,7 @@ Outputs:
   ClusterARN:
     Description: "ARN of the EKS Cluster"
     Value: !GetAtt EKSCluster.Arn
-    Export:
-      Name: !Sub "${AWS::StackName}-EksClusterARN"
   ClusterName:
     Description: "Cluster name"
     Value: !Ref ClusterName
-    Export:
-      Name: "EksClusterName"
+

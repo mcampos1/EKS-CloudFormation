@@ -85,3 +85,5 @@ Resources:
         Subnet: !GetAtt VpcStack.Outputs.BastionSubnetId
         ClusterControlPlaneSecurityGroup: !GetAtt ClusterStack.Outputs.ControlPlaneSecurityGroup
         BastionSecurityGroup: !GetAtt NodeGroupStack.Outputs.BastionSecurityGroupId
+        ClusterName: !GetAtt ClusterStack.Outputs.ClusterName
+        ClusterARN: !GetAtt ClusterStack.Outputs.ClusterARN
