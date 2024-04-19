@@ -47,6 +47,12 @@ Resources:
               - 'sts:AssumeRole'
       Path: '/'
       ManagedPolicyArns:
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonEC2FullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonEKSClusterPolicy'
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonEKSWorkerNodePolicy'
+        - 'arn:aws-us-gov:iam::aws:policy/AWSCloudFormationFullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/CloudWatchFullAccess'
         - 'arn:aws-us-gov:iam::aws:policy/AdministratorAccess'
       Policies:
         - PolicyName: CustomBastionRolePolicy
@@ -69,8 +75,10 @@ Resources:
     Properties:
       ClusterName: !Ref ClusterName
       PrincipalArn: !GetAtt BastionRole.Arn
-      KubernetesGroups:
-        - 'authenticated'
+      AccessPolicies:
+        - PolicyArn: 'arn:aws-us-gov:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy'
+          AccessScope:
+            Type: 'cluster'
 
   Bastion:
     Type: AWS::EC2::Instance

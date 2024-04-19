@@ -1,7 +1,7 @@
 #!/bin/bash
 
-yum update -y
-yum install nano unzip iptables-services -y #will have to manually curl and unzip awscli on non aws linux distros
+sudo yum update -y
+sudo yum install nano unzip iptables-services -y #will have to manually curl and unzip awscli on non aws linux distros
 
 # Install kubectl
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-01-04/bin/linux/amd64/kubectl
@@ -22,13 +22,13 @@ fi
 aws eks update-kubeconfig --name nested-cluster-mark --region us-gov-west-1
 
 # # Install eksctl
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-mv /tmp/eksctl /usr/local/bin
+# curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+# mv /tmp/eksctl /usr/local/bin
 
-# Install helm
-curl https://github.com/helm/helm/releases/helm-v3.14.4-linux-amd64.tar.gz
-tar -zxvf helm-v3.0.0-linux-amd64.tar.gz
-mv linux-amd64/helm /usr/local/bin/helm
+# # Install helm
+# curl https://github.com/helm/helm/releases/helm-v3.14.4-linux-amd64.tar.gz
+# tar -zxvf helm-v3.0.0-linux-amd64.tar.gz
+# mv linux-amd64/helm /usr/local/bin/helm
 
 # sudo systemctl enable firewalld
 # sudo systemctl start firewalld
