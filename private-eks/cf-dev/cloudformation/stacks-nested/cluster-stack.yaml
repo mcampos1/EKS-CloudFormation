@@ -40,7 +40,7 @@ Outputs:
     Description: "ARN of the EKS Cluster"
     Value: !GetAtt EKSCluster.Arn
     Export:
-      Name: "EksClusterARN"
+      Name: !Sub "${AWS::StackName}-EksClusterARN"
   ClusterName:
     Description: "Cluster name"
     Value: !Ref ClusterName

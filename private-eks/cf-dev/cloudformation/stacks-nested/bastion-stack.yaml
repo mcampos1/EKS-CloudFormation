@@ -59,7 +59,9 @@ Resources:
                   - 'eks:Describe*'
                   - 'eks:List*'
                   - 'eks:Get*'
-                Resource: !ImportValue EksClusterARN
+                Resource: 
+                  Fn::ImportValue:
+                    Fn::Sub: "${ClusterStackName}-EksClusterARN"
 
   BastionInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
