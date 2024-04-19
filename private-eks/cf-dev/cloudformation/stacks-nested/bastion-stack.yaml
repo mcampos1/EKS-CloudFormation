@@ -67,6 +67,15 @@ Resources:
       Roles:
         - !Ref BastionRole
 
+  BastionAccessEntry:
+    Type: AWS::EKS::AccessEntry
+    DependsOn: BastionRole
+    Properties:
+      ClusterName: !ImportValue EksClusterName
+      PrincipalArn: !GetAtt BastionRole.Arn
+      KubernetesGroups:
+        - 'masters'
+
   Bastion:
     Type: AWS::EC2::Instance
     Properties:

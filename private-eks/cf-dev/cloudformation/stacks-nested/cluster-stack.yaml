@@ -22,15 +22,15 @@ Resources:
   EKSCluster:
     Type: AWS::EKS::Cluster
     Properties:
-      AccessConfig: 
-          AuthenticationMode: API_AND_CONFIG_MAP
-          BootstrapClusterCreatorAdminPermissions: True
       Name: !Ref ClusterName
+      RoleArn: !Ref ClusterRoleArn
       ResourcesVpcConfig: 
         EndpointPrivateAccess: True
         EndpointPublicAccess: False
         SubnetIds: !Split [",", !Ref Subs]
-      RoleArn: !Ref ClusterRoleArn
+      AccessConfig: 
+          AuthenticationMode: API_AND_CONFIG_MAP
+          BootstrapClusterCreatorAdminPermissions: True
 
 Outputs:
   ControlPlaneSecurityGroup:
@@ -38,6 +38,11 @@ Outputs:
     Value: !GetAtt EKSCluster.ClusterSecurityGroupId
   ClusterARN:
     Description: "ARN of the EKS Cluster"
-    Value: !Ref EKSCluster
+    Value: !GetAtt EKSCluster.Arn
     Export:
-      Name: { Name: "EksClusterARN" }
+      Name: "EksClusterARN"
+  ClusterName:
+    Description: "Cluster name"
+    Value: !Ref ClusterName
+    Export:
+      Name: "EksClusterName"
