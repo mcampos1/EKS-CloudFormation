@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: jboss/keycloak:latest
+        env:
+        - name: KEYCLOAK_USER
+          value: "admin"
+        - name: KEYCLOAK_PASSWORD
+          value: "password"
+        - name: DB_VENDOR
+          value: "postgres"
+        - name: DB_ADDR
+          value: "cq6zrczxy3xu.us-east-2.rds.amazonaws.com"
+        - name: DB_DATABASE
+          value: "keycloak"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_PASSWORD
+          value: "mypassword"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /auth/realms/master
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /auth/realms/master
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+  selector:
+    app: keycloak
