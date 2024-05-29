@@ -11,7 +11,7 @@ CLUSTER_STACK_NAME='cluster-stack'
 CLUSTER_NAME="cluster-mark"
 CLUSTER_ROLE="arn:aws-us-gov:iam::713211132808:role/eksClusterRole"
 KEY_PAIR="martin-test"
-VERSION="1.29"
+VERSION="1.27"
 ENABLE_PRIVATE_ACCESS=true
 ENABLE_PUBLIC_ACCESS=false
 
