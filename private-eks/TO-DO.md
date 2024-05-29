@@ -20,10 +20,25 @@
     * Leverage kibana
     * Enable ntpq on nodes
     * Servers/services external to the cluster will be documented in the Architectural diagrams (HBSS, etc)
-    * Leverage gitlab, artifactory, jinkens, etc
+    * Leverage gitlab, artifactory, jenkins, etc
     * Backup and DR plans: elasticSearch, etcd, postgresdb, etc
     * Authentication to EKS management via openID auth
     * FIPS enabled 
     * Leverage Twistlock for containers
     * Vul and Virus scanning (include in SSP/CONOPS)
     * Enabled SELinux
+* Bastion? Dev Desktops/Workspaces?
+* Kubernetes RBAC for integration with external keycloak
+* Automation of deployment of k8s manifests files 
+* Internal ingress controller nginx vs HAproxy?
+* Kubernetes dashboard for observability
+* Add whitepapers/security documents to CONOPS references section
+* Add external services/ports/protocols to CONOPS 
+
+* Helped Mark with dodiis access 
+
+* Develop draft of Software List
+* etcd backup to S3 documentation
+
+* openshift data foundations for tenent applications 
+* EKS tie in OCM
