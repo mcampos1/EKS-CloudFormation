@@ -20,6 +20,7 @@ Resources:
     Type: AWS::EKS::Cluster
     Properties:
       Name: !Ref ClusterName
+      Version: "1.27"
       RoleArn: !Ref ClusterRoleArn
       ResourcesVpcConfig: 
         EndpointPrivateAccess: True
