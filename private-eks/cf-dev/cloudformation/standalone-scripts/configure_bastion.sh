@@ -25,13 +25,14 @@ tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 sudo mv /tmp/eksctl /usr/local/bin
 
 ### Configure .bashrc
-echo "alias k='kubectl'"
-echo "complete -F __start_kubectl k"
-echo ". <(eksctl completion bash)" >> .bashrc
+echo "alias k='kubectl'" >> ~/.bashrc
+echo "alias ll='ls -la'" >> ~/.bashrc
+echo "complete -F __start_kubectl k" >> ~/.bashrc
+echo ". <(eksctl completion bash)" >> ~/.bashrc
 echo 'if [ -f /etc/bash_completion ]; then' >> ~/.bashrc
 echo '  . /etc/bash_completion' >> ~/.bashrc
 echo 'fi' >> ~/.bashrc
-source <(kubectl completion bash)
+echo ". <(kubectl completion bash)" >> ~/.bashrc
 
 source ~/.bashrc
 
