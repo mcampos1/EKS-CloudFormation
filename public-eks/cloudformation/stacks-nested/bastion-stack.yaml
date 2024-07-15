@@ -1,0 +1,131 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EC2'
+
+Parameters:
+  VpcId:
+    Description: ID of VPC to deploy into
+    Type: String
+  BastionInstanceType:
+    Description: EC2 instance type of bastion host
+    Type: String
+  AMI:
+    Description: Latest RHEL 7 spel-minimal image
+    Type: String
+  KeyName:
+    Description: Key pair to use for EC2 instance creation
+    Type: String
+  Subnet:
+    Description: Bastion subnet (public)
+    Type: String
+  BastionName:
+    Description: Name of EC2 bastion host
+    Type: String
+  ClusterControlPlaneSecurityGroup:
+    Description: The security group of the cluster control plane.
+    Type: String
+  BastionSecurityGroup:
+    Description: The ID of the security group for the bastion host
+    Type: String
+  ClusterName:
+    Type: String
+  ClusterARN:
+    Type: String
+
+Resources:
+  BastionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      ManagedPolicyArns:
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonEC2FullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonEKSClusterPolicy'
+        - 'arn:aws-us-gov:iam::aws:policy/AmazonEKSWorkerNodePolicy'
+        - 'arn:aws-us-gov:iam::aws:policy/AWSCloudFormationFullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/CloudWatchFullAccess'
+        - 'arn:aws-us-gov:iam::aws:policy/AdministratorAccess'
+      Policies:
+        - PolicyName: CustomBastionRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'eks:*'
+                Resource: !Ref ClusterARN
+
+  BastionInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+        - !Ref BastionRole
+
+  BastionAccessEntry:
+    Type: AWS::EKS::AccessEntry
+    Properties:
+      ClusterName: !Ref ClusterName
+      PrincipalArn: !GetAtt BastionRole.Arn
+      AccessPolicies:
+        - PolicyArn: 'arn:aws-us-gov:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy'
+          AccessScope:
+            Type: 'cluster'
+
+  Bastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref BastionInstanceProfile
+      InstanceType: !Ref BastionInstanceType
+      ImageId: !Ref AMI
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: !Ref Subnet
+          GroupSet:
+            - !Ref BastionSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 100
+            VolumeType: gp3
+      # BlockDeviceMappings:
+      #   - DeviceName: /dev/sda1
+      #     Ebs:
+      #       VolumeSize: 100
+      #       VolumeType: gp2
+      Tags:
+        - Key: Name
+          Value: !Ref BastionName
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/ec2-user/configure_bastion.sh
+          chown ec2-user:ec2-user /home/ec2-user/configure_bastion.sh && chmod +x /home/ec2-user/configure_bastion.sh
+
+  BastionSecurityGroupToClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !Ref BastionSecurityGroup
+
+Outputs:
+  InstanceId:
+    Description: The instance ID of the EC2 instance
+    Value: !Ref Bastion
+  AMI:
+    Value: !Ref AMI
+  IP:
+    Value: !GetAtt Bastion.PublicIp

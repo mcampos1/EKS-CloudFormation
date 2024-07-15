@@ -1,0 +1,89 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Foundation for nested stacks"
+
+Parameters:
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+  ClusterName:
+    Description: >-
+      The cluster name provided when the cluster was created. If it is
+      incorrect, nodes will not be able to join the cluster.
+    Type: String
+  ClusterRoleArn:
+    Description: EKS cluster role ARN
+    Type: String
+  AMI:
+    Description: AMI ID for the bastion host
+    Type: String
+  BastionInstanceType:
+    Description: EC2 instance type for the bastion host
+    Type: String
+  BastionName:
+    Description: Common name for the bastion host
+    Type: String
+  BastionSecurityGroupName:
+    Description: Common name for the bastion security group
+    Type: String
+  NodeVolumeSize:
+    Description: Node volume size
+    Type: Number
+  NodeInstanceType:
+    Description: EC2 instance type for the node instances
+    Type: String
+  NodeGroupRole:
+    Description: ARN of node group role
+    Type: String
+
+Resources:
+  VpcStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/vpc-stack.yaml
+
+  ClusterStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VpcStack
+    Properties:
+      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/cluster-stack.yaml
+      Parameters:
+        KeyName: !Ref KeyName
+        ClusterName: !Ref ClusterName
+        ClusterRoleArn: !Ref ClusterRoleArn
+        Subs: !GetAtt VpcStack.Outputs.WorkerSubnetIds
+
+  NodeGroupStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: ClusterStack
+    Properties:
+      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/nodegroup-stack.yaml
+      Parameters:
+        KeyName: !Ref KeyName
+        ClusterName: !Ref ClusterName
+        NodeGroupRole: !Ref NodeGroupRole
+        NodeVolumeSize: !Ref NodeVolumeSize
+        NodeInstanceType: !Ref NodeInstanceType
+        Subs:
+          Fn::GetAtt:
+            - VpcStack
+            - Outputs.WorkerSubnetIds
+        BastionSecurityGroupName: !Ref BastionSecurityGroupName
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+
+  BastionStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: NodeGroupStack
+    Properties:
+      TemplateURL: https://cloudformation-bucket-04022024.s3.us-gov-west-1.amazonaws.com/bastion-stack.yaml
+      Parameters:
+        AMI: !Ref AMI
+        KeyName: !Ref KeyName
+        BastionName: !Ref BastionName
+        BastionInstanceType: !Ref BastionInstanceType
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+        Subnet: !GetAtt VpcStack.Outputs.BastionSubnetId
+        ClusterControlPlaneSecurityGroup: !GetAtt ClusterStack.Outputs.ControlPlaneSecurityGroup
+        BastionSecurityGroup: !GetAtt NodeGroupStack.Outputs.BastionSecurityGroupId
+        ClusterName: !GetAtt ClusterStack.Outputs.ClusterName
+        ClusterARN: !GetAtt ClusterStack.Outputs.ClusterARN

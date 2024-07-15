@@ -1,0 +1,51 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Amazon EKS - Node Group
+Parameters:
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+  ClusterName:
+    Type: String
+  ClusterRoleArn:
+    Description: EKS Role ARN
+    Type: String
+  Subs:
+    Description: The subnets where workers can be created.
+    Type: String
+
+## RESOURCES
+Resources:
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      Version: "1.29"
+      RoleArn: !Ref ClusterRoleArn
+      ResourcesVpcConfig: 
+        EndpointPrivateAccess: True
+        EndpointPublicAccess: False
+        SubnetIds: !Split [",", !Ref Subs]
+      AccessConfig: 
+          AuthenticationMode: API_AND_CONFIG_MAP
+          BootstrapClusterCreatorAdminPermissions: True
+
+  AccessEntry:
+    Type: 'AWS::EKS::AccessEntry'
+    DependsOn: EKSCluster
+    Properties:
+        ClusterName: !Ref ClusterName
+        PrincipalArn: 'arn:aws-us-gov:iam::713211132808:role/DPaaSAdmins'
+        Type: 'STANDARD'
+
+Outputs:
+  ControlPlaneSecurityGroup:
+    Description: The security group of the aws managed controlplane
+    Value: !GetAtt EKSCluster.ClusterSecurityGroupId
+  ClusterARN:
+    Description: "ARN of the EKS Cluster"
+    Value: !GetAtt EKSCluster.Arn
+  ClusterName:
+    Description: "Cluster name"
+    Value: !Ref ClusterName
+
