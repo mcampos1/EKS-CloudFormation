@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo yum update -y
-sudo yum install nano unzip iptables-services -y #will have to manually curl and unzip awscli on non aws linux distros
+sudo yum install nano unzip iptables-services git -y #will have to manually curl and unzip awscli on non aws linux distros
 
 ### Install kubectl & update kubeconfig
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.12/2024-04-19/bin/linux/amd64/kubectl

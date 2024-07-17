@@ -6,11 +6,23 @@ source cf-vars.sh
 
 case "$1" in
   deploy)
-    aws s3 cp ./vpc-stack.yaml s3://cloudformation-bucket-04022024
-    aws s3 cp ./cluster-stack.yaml s3://cloudformation-bucket-04022024
-    aws s3 cp ./nodegroup-stack.yaml s3://cloudformation-bucket-04022024
-    aws s3 cp ./bastion-stack.yaml s3://cloudformation-bucket-04022024
-    aws s3 cp ../standalone-scripts/configure_bastion.sh s3://cloudformation-bucket-04022024
+    files=(
+      "./vpc-stack.yaml"
+      "./cluster-stack.yaml"
+      "./nodegroup-stack.yaml"
+      "./bastion-stack.yaml"
+      "../standalone-scripts/configure_bastion.sh"
+      "../standalone-scripts/configure_lbc.sh"
+      "../../../k8s-manifests/test-app-service.yml"
+      "../../../k8s-manifests/test-ingress.yml"
+    )
+
+    bucket="s3://cloudformation-bucket-04022024"
+
+    for file in "${files[@]}"; do
+      aws s3 cp "$file" "$bucket"
+    done
+
     aws cloudformation deploy \
       --profile default \
       --region $REGION \

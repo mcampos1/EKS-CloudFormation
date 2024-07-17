@@ -109,8 +109,23 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash
-          aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/ec2-user/configure_bastion.sh
-          chown ec2-user:ec2-user /home/ec2-user/configure_bastion.sh && chmod +x /home/ec2-user/configure_bastion.sh
+          files=(
+            "configure_bastion.sh"
+            "configure_lbc.sh"
+            "test-app-service.yml"
+            "test-ingress.yml"
+          )
+          
+          for file in "${files[@]}"; do
+            aws s3 cp "s3://cloudformation-bucket-04022024/$file" "/home/ec2-user/$file"
+            chown ec2-user:ec2-user "/home/ec2-user/$file"
+            chmod +x "/home/ec2-user/$file"
+          done
+
+        # Fn::Base64: |
+        #   #!/bin/bash
+        #   aws s3 cp s3://cloudformation-bucket-04022024/configure_bastion.sh /home/ec2-user/configure_bastion.sh
+        #   chown ec2-user:ec2-user /home/ec2-user/configure_bastion.sh && chmod +x /home/ec2-user/configure_bastion.sh
 
   BastionSecurityGroupToClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroupIngress
