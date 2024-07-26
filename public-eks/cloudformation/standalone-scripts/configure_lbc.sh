@@ -13,3 +13,5 @@ kubectl apply -f crds.yaml
 helm repo add eks https://aws.github.io/eks-charts
 
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=nested-cluster-mark-3 --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+
+rm -f iam-policy.json crds.yaml
