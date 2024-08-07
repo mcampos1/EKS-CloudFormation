@@ -13,6 +13,7 @@ case "$1" in
       "./bastion-stack.yaml"
       "../standalone-scripts/configure_bastion.sh"
       "../standalone-scripts/configure_lbc.sh"
+      "../standalone-scripts/configure_velero.sh"
       "../../../k8s-manifests/test-app-service.yml"
       "../../../k8s-manifests/test-ingress.yml"
     )

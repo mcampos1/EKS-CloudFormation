@@ -112,6 +112,7 @@ Resources:
           files=(
             "configure_bastion.sh"
             "configure_lbc.sh"
+            "configure_velero.sh"
             "test-app-service.yml"
             "test-ingress.yml"
           )

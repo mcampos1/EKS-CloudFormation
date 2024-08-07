@@ -4,11 +4,11 @@ sudo yum update -y
 sudo yum install nano unzip iptables-services git -y #will have to manually curl and unzip awscli on non aws linux distros
 
 ### Install kubectl & update kubeconfig
-curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.12/2024-04-19/bin/linux/amd64/kubectl
+curl -LO "https://dl.k8s.io/release/v1.29.0/bin/linux/amd64/kubectl"
 chmod +x ./kubectl
 sudo mv kubectl /usr/local/bin/
 kubectl version --client
-aws eks update-kubeconfig --name nested-cluster-mark-3 --region us-gov-west-1
+aws eks update-kubeconfig --name nested-cluster-mark --region us-gov-west-1
 
 ### Install & configure helm
 wget https://get.helm.sh/helm-v3.10.0-linux-amd64.tar.gz
