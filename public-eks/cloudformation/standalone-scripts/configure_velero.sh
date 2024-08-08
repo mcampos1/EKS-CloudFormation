@@ -38,20 +38,22 @@ cat > velero_policy.json <<EOF
                 "s3:DeleteObject",
                 "s3:PutObject",
                 "s3:AbortMultipartUpload",
-                "s3:ListMultipartUploadParts"
+                "s3:ListMultipartUploadParts",
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
             ],
             "Resource": [
-                "arn:aws-us-gov:s3:::${BUCKET}/*"
+                "arn:aws-us-gov:s3:::${BUCKET}/*",
+                "arn:aws-us-gov:s3:::${BUCKET}"
             ]
         },
         {
             "Effect": "Allow",
             "Action": [
-                "s3:ListBucket"
+                "iam:GetRole",
+                "iam:PassRole"
             ],
-            "Resource": [
-                "arn:aws-us-gov:s3:::${BUCKET}"
-            ]
+            "Resource": "*"
         }
     ]
 }
@@ -63,6 +65,10 @@ if ! aws iam get-policy --policy-arn arn:aws-us-gov:iam::$ACCOUNT:policy/VeleroA
         --policy-document file://velero_policy.json
 else
     echo "Policy VeleroAccessPolicy already exists."
+    aws iam create-policy-version \
+        --policy-arn arn:aws-us-gov:iam::$ACCOUNT:policy/VeleroAccessPolicy \
+        --policy-document file://velero_policy.json \
+        --set-as-default
 fi
 
 # Create IAM user for Velero and attach policy
@@ -101,7 +107,7 @@ for CLUSTER in $PRIMARY_CLUSTER $RECOVERY_CLUSTER; do
 done
 
 # Install Velero CLI
-VELERO_VERSION=v1.10.0
+VELERO_VERSION=v1.14.0
 curl -LO https://github.com/vmware-tanzu/velero/releases/download/${VELERO_VERSION}/velero-${VELERO_VERSION}-linux-amd64.tar.gz
 tar -zxvf velero-${VELERO_VERSION}-linux-amd64.tar.gz
 sudo mv velero-${VELERO_VERSION}-linux-amd64/velero /usr/local/bin/velero
@@ -114,13 +120,16 @@ fi
 
 # Configure Velero on Primary Cluster
 velero install \
-    --provider aws-us-gov \
+    --provider aws \
     --bucket $BUCKET \
     --secret-file ./credentials-velero \
     --backup-location-config region=$REGION \
     --snapshot-location-config region=$REGION \
-    --plugins velero/velero-plugin-for-aws:v1.3.0 \
+    --plugins velero/velero-plugin-for-aws:v1.10.0 \
     --wait
+
+# Patch backup storage location
+kubectl patch backupstoragelocation default -n velero --type merge -p '{"spec":{"provider":"aws","objectStorage":{"bucket":"'$BUCKET'"},"config":{"region":"'$REGION'","s3ForcePathStyle":"true"}}}'
 
 # Verify Velero Installation
 velero version
