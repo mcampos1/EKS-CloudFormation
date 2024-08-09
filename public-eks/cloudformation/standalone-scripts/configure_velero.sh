@@ -128,9 +128,6 @@ velero install \
     --plugins velero/velero-plugin-for-aws:v1.10.0 \
     --wait
 
-# Patch backup storage location
-kubectl patch backupstoragelocation default -n velero --type merge -p '{"spec":{"provider":"aws","objectStorage":{"bucket":"'$BUCKET'"},"config":{"region":"'$REGION'","s3ForcePathStyle":"true"}}}'
-
 # Verify Velero Installation
 velero version
 kubectl get deployments -n velero
