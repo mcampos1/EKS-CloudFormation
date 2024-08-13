@@ -1,12 +1,11 @@
 #!/bin/bash
 
-export PRIMARY_CLUSTER=nested-cluster-mark
-export RECOVERY_CLUSTER=nested-cluster-mark-2
+export CLUSTER=nested-cluster-mark-2
 export ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-export BUCKET=nested-cluster-mark-bucket
+export BUCKET=$CLUSTER-bucket
 export REGION=us-gov-west-1
 export AWS_REGION=us-gov-west-1
-export VELERO_USER=velero-$PRIMARY_CLUSTER
+export VELERO_USER=velero-$CLUSTER
 
 # Create S3 bucket if it doesn't exist
 if ! aws s3 ls "s3://$BUCKET" > /dev/null 2>&1; then
@@ -42,10 +41,7 @@ cat > velero_policy.json <<EOF
                 "s3:ListBucket",
                 "s3:GetBucketLocation"
             ],
-            "Resource": [
-                "arn:aws-us-gov:s3:::${BUCKET}/*",
-                "arn:aws-us-gov:s3:::${BUCKET}"
-            ]
+            "Resource": "*"
         },
         {
             "Effect": "Allow",
@@ -101,10 +97,8 @@ aws_access_key_id=$AWS_ACCESS_KEY_ID
 aws_secret_access_key=$AWS_SECRET_ACCESS_KEY
 EOF
 
-# Associate IAM OIDC provider with EKS clusters if not already associated
-for CLUSTER in $PRIMARY_CLUSTER $RECOVERY_CLUSTER; do
-    eksctl utils associate-iam-oidc-provider --region=$REGION --cluster=$CLUSTER --approve
-done
+# Associate IAM OIDC provider with EKS cluster
+eksctl utils associate-iam-oidc-provider --region=$REGION --cluster=$CLUSTER --approve
 
 # Install Velero CLI
 VELERO_VERSION=v1.14.0
