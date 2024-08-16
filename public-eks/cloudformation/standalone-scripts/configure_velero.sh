@@ -126,3 +126,6 @@ velero install \
 velero version
 kubectl get deployments -n velero
 kubectl get pods -n velero
+
+# Configure scheduled backups to occur once a week, backups persist for 90 days.
+velero schedule create weekly-cluster-backup --schedule="0 0 * * 0" --include-namespaces='*' --ttl=2160h
