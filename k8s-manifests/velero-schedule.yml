@@ -1,0 +1,29 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: weekly-cluster-backup
+  namespace: velero
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {
+        "apiVersion": "velero.io/v1",
+        "kind": "Schedule",
+        "metadata": {
+          "name": "weekly-cluster-backup",
+          "namespace": "velero"
+        },
+        "spec": {
+          "schedule": "0 0 * * 0",
+          "template": {
+            "ttl": "2160h0m0s"
+          }
+        }
+      }
+spec:
+  schedule: "0 0 * * 0"
+  template:
+    ttl: 2160h
+    includedNamespaces:
+    - '*'
+    snapshotVolumes: true
+    defaultVolumesToRestic: false

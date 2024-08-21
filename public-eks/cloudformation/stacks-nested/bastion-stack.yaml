@@ -115,6 +115,7 @@ Resources:
             "configure_velero.sh"
             "test-app-service.yml"
             "test-ingress.yml"
+            "velero-schedule.yml"
           )
           
           for file in "${files[@]}"; do

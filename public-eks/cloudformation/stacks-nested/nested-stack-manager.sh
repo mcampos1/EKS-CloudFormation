@@ -16,6 +16,7 @@ case "$1" in
       "../standalone-scripts/configure_velero.sh"
       "../../../k8s-manifests/test-app-service.yml"
       "../../../k8s-manifests/test-ingress.yml"
+      "../../../k8s-manifests/velero-schedule.yml"
     )
 
     bucket="s3://cloudformation-bucket-04022024"
